@@ -1,0 +1,412 @@
+orders-spa/
+│
+├── index.html
+├── style.css
+└── app.js
+
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель заказов SPA</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+
+    <div class="container">
+
+        <header>
+            <h1>Панель заказов</h1>
+            <p>Система управления заказами</p>
+        </header>
+
+        <section class="statistics">
+            <div class="stat-card">
+                <span>Всего заказов</span>
+                <h2 id="totalCount">0</h2>
+            </div>
+
+            <div class="stat-card">
+                <span>Новые</span>
+                <h2 id="newCount">0</h2>
+            </div>
+
+            <div class="stat-card">
+                <span>В работе</span>
+                <h2 id="workCount">0</h2>
+            </div>
+
+            <div class="stat-card">
+                <span>Готовые</span>
+                <h2 id="doneCount">0</h2>
+            </div>
+        </section>
+
+        <nav>
+            <button data-status="new" class="active">
+                Новые <span id="tabNew">0</span>
+            </button>
+
+            <button data-status="work">
+                В работе <span id="tabWork">0</span>
+            </button>
+
+            <button data-status="done">
+                Готовые <span id="tabDone">0</span>
+            </button>
+        </nav>
+
+        <main>
+            <div id="ordersList"></div>
+        </main>
+
+        <footer>
+            <p>Панель управления заказами</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
+
+----------
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #e9eef5;
+    margin: 0;
+    padding: 30px 15px;
+}
+
+.container {
+    max-width: 900px;
+    margin: auto;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px #00000015;
+}
+
+header {
+    background: #263b63;
+    color: white;
+    text-align: center;
+    padding: 25px;
+}
+
+.statistics {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 20px;
+}
+
+.stat-card {
+    background: #f0f3f8;
+    padding: 15px;
+    text-align: center;
+    border-radius: 8px;
+}
+
+.stat-card span {
+    color: #666;
+    font-size: 14px;
+}
+
+.stat-card h2 {
+    color: #263b63;
+    margin: 10px 0 0;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px;
+    background: #f3f5f8;
+}
+
+nav button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 7px;
+    background: #dce3ed;
+    cursor: pointer;
+}
+
+nav button.active {
+    background: #263b63;
+    color: white;
+}
+
+nav span {
+    font-weight: bold;
+}
+
+main {
+    padding: 20px;
+    min-height: 250px;
+}
+
+.order {
+    background: #f5f7fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 18px;
+    margin-bottom: 15px;
+}
+
+.order h3 {
+    margin-top: 0;
+    color: #263b63;
+}
+
+.order p {
+    margin: 8px 0;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.actions button {
+    padding: 9px 14px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+}
+
+.next {
+    background: #2878d0;
+}
+
+.back {
+    background: #777;
+}
+
+.empty {
+    text-align: center;
+    color: gray;
+    padding: 30px;
+}
+
+footer {
+    text-align: center;
+    padding: 15px;
+    background: #f3f5f8;
+    color: #777;
+}
+
+@media (max-width: 600px) {
+    .statistics {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    nav {
+        flex-wrap: wrap;
+    }
+
+    nav button {
+        flex: 1;
+    }
+}
+
+----------
+
+// Массив заказов
+let orders = [
+    {
+        id: 101,
+        client: "Александр",
+        product: "Игровая клавиатура",
+        price: 25000,
+        status: "new"
+    },
+    {
+        id: 102,
+        client: "Дмитрий",
+        product: "Компьютерная мышь",
+        price: 12000,
+        status: "new"
+    },
+    {
+        id: 103,
+        client: "Артём",
+        product: "Наушники",
+        price: 18000,
+        status: "work"
+    },
+    {
+        id: 104,
+        client: "Максим",
+        product: "Монитор",
+        price: 95000,
+        status: "done"
+    }
+];
+
+// Получение элементов страницы
+const ordersList = document.querySelector("#ordersList");
+const buttons = document.querySelectorAll("[data-status]");
+
+// Текущая вкладка
+let currentStatus = "new";
+
+// Названия статусов
+const statusNames = {
+    new: "Новый",
+    work: "В работе",
+    done: "Готов"
+};
+
+// Форматирование цены
+function formatPrice(price) {
+    return price.toLocaleString("ru-RU") + " ₸";
+}
+
+// Обновление счетчиков
+function updateCounters() {
+    const newOrders = orders.filter(o => o.status === "new").length;
+    const workOrders = orders.filter(o => o.status === "work").length;
+    const doneOrders = orders.filter(o => o.status === "done").length;
+
+    document.querySelector("#totalCount").textContent = orders.length;
+
+    document.querySelector("#newCount").textContent = newOrders;
+    document.querySelector("#workCount").textContent = workOrders;
+    document.querySelector("#doneCount").textContent = doneOrders;
+
+    document.querySelector("#tabNew").textContent = newOrders;
+    document.querySelector("#tabWork").textContent = workOrders;
+    document.querySelector("#tabDone").textContent = doneOrders;
+}
+
+// Отображение заказов
+function renderOrders() {
+    ordersList.replaceChildren();
+
+    // Выбираем заказы текущей вкладки
+    const filteredOrders = orders.filter(order => {
+        return order.status === currentStatus;
+    });
+
+    if (filteredOrders.length === 0) {
+        const message = document.createElement("p");
+        message.textContent = "В этой категории пока нет заказов.";
+        message.classList.add("empty");
+        ordersList.append(message);
+    }
+
+    filteredOrders.forEach(order => {
+        const card = document.createElement("div");
+        card.classList.add("order");
+
+        const title = document.createElement("h3");
+        title.textContent = "Заказ №" + order.id;
+
+        const client = document.createElement("p");
+        client.textContent = "Клиент: " + order.client;
+
+        const product = document.createElement("p");
+        product.textContent = "Товар: " + order.product;
+
+        const price = document.createElement("p");
+        price.textContent = "Стоимость: " + formatPrice(order.price);
+
+        const status = document.createElement("p");
+        status.textContent = "Статус: " + statusNames[order.status];
+
+        card.append(title, client, product, price, status);
+
+        const actions = document.createElement("div");
+        actions.classList.add("actions");
+
+        // Кнопка изменения статуса
+        if (order.status !== "done") {
+            const nextBtn = document.createElement("button");
+            nextBtn.textContent = order.status === "new"
+                ? "Начать работу"
+                : "Завершить заказ";
+
+            nextBtn.classList.add("next");
+
+            nextBtn.addEventListener("click", () => {
+                changeStatus(order.id, "next");
+            });
+
+            actions.append(nextBtn);
+        }
+
+        // Кнопка возврата заказа
+        if (order.status !== "new") {
+            const backBtn = document.createElement("button");
+            backBtn.textContent = "Вернуть назад";
+            backBtn.classList.add("back");
+
+            backBtn.addEventListener("click", () => {
+                changeStatus(order.id, "back");
+            });
+
+            actions.append(backBtn);
+        }
+
+        card.append(actions);
+        ordersList.append(card);
+    });
+
+    updateCounters();
+}
+
+// Изменение статуса заказа
+function changeStatus(id, direction) {
+    const order = orders.find(item => item.id === id);
+
+    if (!order) return;
+
+    if (direction === "next") {
+        if (order.status === "new") {
+            order.status = "work";
+        } else if (order.status === "work") {
+            order.status = "done";
+        }
+    }
+
+    if (direction === "back") {
+        if (order.status === "done") {
+            order.status = "work";
+        } else if (order.status === "work") {
+            order.status = "new";
+        }
+    }
+
+    // Обновляем панель
+    renderOrders();
+}
+
+// Переключение вкладок
+buttons.forEach(button => {
+    button.addEventListener("click", () => {
+        currentStatus = button.dataset.status;
+
+        buttons.forEach(btn => {
+            btn.classList.toggle("active", btn === button);
+        });
+
+        renderOrders();
+    });
+});
+
+// Первоначальный запуск
+renderOrders();
+
