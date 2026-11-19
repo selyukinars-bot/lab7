@@ -1,0 +1,226 @@
+student-spa/
+│
+├── index.html
+├── style.css
+└── app.js
+
+
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Визитка студента</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+
+    <div class="container">
+
+        <header>
+            <h1>Визитка студента</h1>
+            <p>Моя личная страница</p>
+        </header>
+
+        <nav>
+            <button data-page="about">О себе</button>
+            <button data-page="skills">Навыки</button>
+            <button data-page="contacts">Контакты</button>
+        </nav>
+
+        <main id="content" aria-live="polite"></main>
+
+        <footer>
+            <p>© 2026 Визитка студента</p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
+
+
+-------------------------------------------------------------------------------
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #e9eef5;
+    margin: 0;
+    padding: 40px 15px;
+}
+
+.container {
+    max-width: 700px;
+    margin: auto;
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px #00000015;
+}
+
+header {
+    background: #263b63;
+    color: white;
+    text-align: center;
+    padding: 35px;
+}
+
+header h1 {
+    margin: 0 0 10px;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 20px;
+    background: #f5f5f5;
+}
+
+nav button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 7px;
+    background: #dce3ed;
+    cursor: pointer;
+    font-size: 15px;
+}
+
+nav button:hover,
+nav button.active {
+    background: #263b63;
+    color: white;
+}
+
+main {
+    min-height: 230px;
+    padding: 30px;
+    line-height: 1.7;
+}
+
+main h2 {
+    color: #263b63;
+}
+
+main li {
+    margin: 8px 0;
+}
+
+footer {
+    text-align: center;
+    padding: 15px;
+    background: #f5f5f5;
+    color: #777;
+}
+
+@media (max-width: 480px) {
+    nav {
+        flex-wrap: wrap;
+    }
+
+    nav button {
+        flex: 1;
+    }
+}
+
+
+
+---------------------------------
+
+// Данные разделов сайта
+const pages = {
+    about: {
+        title: "О себе",
+        text: "Меня зовут Арсений. Я студент группы ИС-25-21. Изучаю программирование, информационные системы и современные технологии."
+    },
+
+    skills: {
+        title: "Мои навыки",
+        text: "Я изучаю следующие технологии:"
+        ,
+        skills: [
+            "HTML — создание веб-страниц",
+            "CSS — оформление сайтов",
+            "JavaScript — программирование",
+            "Python — основы программирования",
+            "MySQL — работа с базами данных"
+        ]
+    },
+
+    contacts: {
+        title: "Контакты",
+        text: "Связаться со мной можно следующими способами:",
+        contacts: [
+            "Имя: Арсений",
+            "Группа: ИС-25-21",
+            "Специальность: Информационные системы"
+        ]
+    }
+};
+
+// Получение элементов страницы
+const content = document.querySelector("#content");
+const buttons = document.querySelectorAll("[data-page]");
+
+// Функция отображения раздела
+function showPage(pageName) {
+    const page = pages[pageName];
+
+    if (!page) {
+        content.textContent = "Ошибка: раздел не найден.";
+        return;
+    }
+
+    // Очистка старого содержимого
+    content.replaceChildren();
+
+    // Создание заголовка
+    const title = document.createElement("h2");
+    title.textContent = page.title;
+    content.append(title);
+
+    // Создание текста
+    const paragraph = document.createElement("p");
+    paragraph.textContent = page.text;
+    content.append(paragraph);
+
+    // Создание списка навыков или контактов
+    const items = page.skills || page.contacts;
+
+    if (items) {
+        const list = document.createElement("ul");
+
+        items.forEach(item => {
+            const li = document.createElement("li");
+            li.textContent = item;
+            list.append(li);
+        });
+
+        content.append(list);
+    }
+
+    // Выделение активной вкладки
+    buttons.forEach(button => {
+        button.classList.toggle(
+            "active",
+            button.dataset.page === pageName
+        );
+    });
+}
+
+// Обработка нажатий на вкладки
+buttons.forEach(button => {
+    button.addEventListener("click", () => {
+        showPage(button.dataset.page);
+    });
+});
+
+// Открытие первой вкладки
+showPage("about");
