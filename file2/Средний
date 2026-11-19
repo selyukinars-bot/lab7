@@ -1,0 +1,278 @@
+todo-spa/
+│
+├── index.html
+├── style.css
+└── app.js
+
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список задач SPA</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="app.js" defer></script>
+</head>
+<body>
+
+    <div class="container">
+
+        <header>
+            <h1>Мои задачи</h1>
+            <p>Управление списком дел</p>
+        </header>
+
+        <div class="add-task">
+            <input type="text" id="taskInput"
+                   placeholder="Введите новую задачу">
+
+            <button id="addBtn">Добавить</button>
+        </div>
+
+        <nav>
+            <button data-filter="all" class="active">Все</button>
+            <button data-filter="active">Активные</button>
+            <button data-filter="completed">Выполненные</button>
+        </nav>
+
+        <main>
+            <ul id="taskList"></ul>
+        </main>
+
+        <footer>
+            <p>Всего задач: <span id="taskCount">0</span></p>
+        </footer>
+
+    </div>
+
+</body>
+</html>
+
+-------------
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #e9eef5;
+    margin: 0;
+    padding: 40px 15px;
+}
+
+.container {
+    max-width: 650px;
+    margin: auto;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px #00000015;
+}
+
+header {
+    background: #263b63;
+    color: white;
+    text-align: center;
+    padding: 25px;
+}
+
+.add-task {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+}
+
+input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#addBtn {
+    background: #2878d0;
+    color: white;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    padding: 10px;
+    background: #f3f5f8;
+}
+
+nav button {
+    background: #dce3ed;
+}
+
+nav button.active {
+    background: #263b63;
+    color: white;
+}
+
+main {
+    min-height: 200px;
+    padding: 15px 25px;
+}
+
+#taskList {
+    list-style: none;
+    padding: 0;
+}
+
+#taskList li {
+    padding: 13px;
+    margin-bottom: 10px;
+    background: #f1f3f6;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+#taskList li:hover {
+    background: #e2e8f0;
+}
+
+#taskList li.completed {
+    text-decoration: line-through;
+    color: gray;
+    background: #d8f2df;
+}
+
+.empty {
+    text-align: center;
+    color: gray;
+}
+
+footer {
+    background: #f3f5f8;
+    padding: 15px;
+    text-align: center;
+}
+
+@media (max-width: 480px) {
+    .add-task {
+        flex-direction: column;
+    }
+
+    nav {
+        flex-wrap: wrap;
+    }
+}
+
+---------------
+
+// Массив задач
+let tasks = [
+    { id: 1, text: "Изучить JavaScript", completed: false },
+    { id: 2, text: "Выполнить лабораторную работу", completed: true },
+    { id: 3, text: "Повторить тему DOM", completed: false }
+];
+
+// Получение элементов страницы
+const input = document.querySelector("#taskInput");
+const addBtn = document.querySelector("#addBtn");
+const taskList = document.querySelector("#taskList");
+const taskCount = document.querySelector("#taskCount");
+const filterButtons = document.querySelectorAll("[data-filter]");
+
+let currentFilter = "all";
+
+// Отображение задач
+function renderTasks() {
+    taskList.replaceChildren();
+
+    let filteredTasks = tasks.filter(task => {
+        if (currentFilter === "active") {
+            return !task.completed;
+        }
+
+        if (currentFilter === "completed") {
+            return task.completed;
+        }
+
+        return true;
+    });
+
+    if (filteredTasks.length === 0) {
+        const message = document.createElement("li");
+        message.textContent = "Задач пока нет";
+        message.classList.add("empty");
+        taskList.append(message);
+    }
+
+    filteredTasks.forEach(task => {
+        const item = document.createElement("li");
+
+        item.textContent = task.text;
+
+        if (task.completed) {
+            item.classList.add("completed");
+        }
+
+        // Изменение статуса задачи
+        item.addEventListener("click", () => {
+            task.completed = !task.completed;
+            renderTasks();
+        });
+
+        taskList.append(item);
+    });
+
+    // Общее количество задач
+    taskCount.textContent = tasks.length;
+}
+
+// Добавление задачи
+function addTask() {
+    const text = input.value.trim();
+
+    if (text === "") {
+        alert("Введите название задачи!");
+        return;
+    }
+
+    tasks.push({
+        id: Date.now(),
+        text: text,
+        completed: false
+    });
+
+    input.value = "";
+    renderTasks();
+}
+
+// Обработка кнопки добавления
+addBtn.addEventListener("click", addTask);
+
+// Добавление задачи клавишей Enter
+input.addEventListener("keydown", event => {
+    if (event.key === "Enter") {
+        addTask();
+    }
+});
+
+// Переключение вкладок
+filterButtons.forEach(button => {
+    button.addEventListener("click", () => {
+        currentFilter = button.dataset.filter;
+
+        filterButtons.forEach(btn => {
+            btn.classList.toggle("active", btn === button);
+        });
+
+        renderTasks();
+    });
+});
+
+// Первоначальное отображение
+renderTasks();
